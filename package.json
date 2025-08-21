@@ -1,0 +1,32 @@
+{
+  "name": "rxwebsocket",
+  "version": "1.0.2",
+  "description": "RxJS WebSocket Advanced Wrapper",
+  "main": "dist/rxwebsocket.js",
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run format",
+    "preversion": "npm run format"
+  },
+  "author": "Artico Bandurini",
+  "license": "MIT",
+  "keywords": [
+    "rx",
+    "rxjs",
+    "websocket"
+  ],
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.2.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "rxjs": "^7.8.2"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "types": "dist/rxwebsocket.d.ts"
+}
