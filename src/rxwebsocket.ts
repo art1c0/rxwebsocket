@@ -26,21 +26,21 @@ export interface RxWebSocketSubjectConfig<In, Out = any>
 }
 
 export class RxWebSocketSubject<In, Out = any> {
+  private readonly config: RxWebSocketSubjectConfig<In, Out>;
   private socket$: WebSocketSubject<In | Out> | null = null;
   private output$ = new Subject<Out>();
   private input$ = new Subject<In>();
-  private state$ = new BehaviorSubject<
-    'DISCONNECTED' | 'CONNECTING' | 'CONNECTED'
-  >('DISCONNECTED');
   private multiplexStreams = new Map<string, MultiplexEntry<In, Out>>();
-  private keyCounter = 0;
-  private attempts = 0;
   private timerSubscription: Subscription | null = null;
   private socketSubscription: Subscription | null = null;
   private outputSubscription: Subscription | null = null;
   private subscribersCount = 0;
+  private keyCounter = 0;
+  private attempts = 0;
   private manuallyCompleted = false;
-  private readonly config: RxWebSocketSubjectConfig<In, Out>;
+  readonly state$ = new BehaviorSubject<
+    'DISCONNECTED' | 'CONNECTING' | 'CONNECTED'
+  >('DISCONNECTED');
 
   constructor(config: string | RxWebSocketSubjectConfig<In, Out>) {
     const defaults = {
