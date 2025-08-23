@@ -1,12 +1,12 @@
-# RxJS WebSocket Advanced Wrapper
+# Rx WebSocket Advanced Wrapper
 
-It is intended to be a drop-in replacement for the standard RxJS [WebSocketSubject](https://rxjs.dev/api/webSocket/WebSocketSubject), but with some additional capabilities:
+This TypeScript module is intended to be a drop-in replacement for the standard RxJS [WebSocketSubject](https://rxjs.dev/api/webSocket/WebSocketSubject), but with some additional capabilities:
 
-1. Separate types for input and output data. In fact it is very rare if not impossible that the same data type is being used for input and output for a WebSocket as it is provided by standard RxJS solution, so this problem is resolved by this module.
+1. Separate types for input and output data. In fact it is very rare if not impossible that the same data type is being used for input and output for a WebSocket as it is provided by standard RxJS solution, so this problem is resolved by the module.
 2. Reconnection with exponential back-off, which is completely absent in standard solution.
 3. Buffering outgoing messages during reconnect with auto-sending when connection is re-established. This includes 'subscribe' messages for multiplex.
 4. Ability to keep the connection alive when the last multiplex consumer is off. Standard behavior is to disconnect, which is not desirable in some cases.
-5. Special subject state$ to track the connection state with values DISCONNECTED, CONNECTING, CONNECTED.
+5. Special property state$ which is a Subject to track the connection state, emitting values DISCONNECTED, CONNECTING, CONNECTED.
 6. Easy logging of all actions and messages with `debug` configuration boolean parameter.
 
 ## Install
@@ -14,15 +14,21 @@ It is intended to be a drop-in replacement for the standard RxJS [WebSocketSubje
 
 The module has only one dependency which is `rxjs` itself.
 
+It contains both `ESM` modern version and `CommonJS` version for NodeJS legacy.
+
 ## Usage
 
-### Configuration object:
+### Configuration URL or object:
 ```
 import { RxWebSocketSubjectConfig } from 'rxwebsocket';
 const config: RxWebSocketSubjectConfig = {
     url: 'wss://example.com/websocket',
     debug: true,
 };
+
+// simplified config can also be just a URL string:
+const config = 'wss://example.com/websocket';
+
 ```
 
 ### Instance via function:
