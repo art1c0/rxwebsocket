@@ -1,17 +1,37 @@
 {
   "name": "rxwebsocket",
-  "version": "1.0.4",
+  "version": "1.0.7",
   "description": "RxJS WebSocket Advanced Wrapper",
-  "main": "dist/rxwebsocket.js",
+  "main": "./dist/cjs/rxwebsocket.js",
+  "module": "./dist/esm/rxwebsocket.js",
+  "types": "./dist/esm/rxwebsocket.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/cjs/rxwebsocket.js",
+      "import": "./dist/esm/rxwebsocket.js",
+      "types": "./dist/esm/rxwebsocket.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
     "format": "prettier --write \"src/**/*.ts\"",
     "prepare": "npm run build",
     "prepublishOnly": "npm run format",
     "preversion": "npm run format"
   },
-  "author": "Artico Bandurini",
+  "author": "Artico",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/art1c0/rxwebsocket.git"
+  },
+  "bugs": {
+    "url": "https://github.com/art1c0/rxwebsocket/issues"
+  },
+  "homepage": "https://github.com/art1c0/rxwebsocket#readme",
+  "funding": "https://buymeacoffee.com/artico",
   "keywords": [
     "rx",
     "rxjs",
@@ -27,6 +47,5 @@
   },
   "files": [
     "dist/**/*"
-  ],
-  "types": "dist/rxwebsocket.d.ts"
+  ]
 }
