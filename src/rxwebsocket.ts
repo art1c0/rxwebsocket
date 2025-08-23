@@ -16,6 +16,15 @@ type MultiplexEntry<In, Out> = {
   subscribed: boolean;
 };
 
+export const RxConnectionState = {
+  DISCONNECTED: 'DISCONNECTED',
+  CONNECTING: 'CONNECTING',
+  CONNECTED: 'CONNECTED',
+} as const;
+
+export type RxConnectionState =
+  (typeof RxConnectionState)[keyof typeof RxConnectionState];
+
 export interface RxWebSocketSubjectConfig<In, Out = any>
   extends WebSocketSubjectConfig<In | Out> {
   maxAttempts?: number;
@@ -38,9 +47,9 @@ export class RxWebSocketSubject<In, Out = any> {
   private keyCounter = 0;
   private attempts = 0;
   private manuallyCompleted = false;
-  readonly state$ = new BehaviorSubject<
-    'DISCONNECTED' | 'CONNECTING' | 'CONNECTED'
-  >('DISCONNECTED');
+  readonly state$ = new BehaviorSubject<RxConnectionState>(
+    RxConnectionState.DISCONNECTED,
+  );
 
   constructor(config: string | RxWebSocketSubjectConfig<In, Out>) {
     const defaults = {
@@ -58,7 +67,7 @@ export class RxWebSocketSubject<In, Out = any> {
   }
 
   public next(msg: Out): void {
-    if (this.state$.value === 'CONNECTED') {
+    if (this.state$.value === RxConnectionState.CONNECTED) {
       this.log('Sending message:', msg);
       this.socket$?.next(msg);
     } else {
@@ -88,8 +97,8 @@ export class RxWebSocketSubject<In, Out = any> {
 
     this.socket$ = null;
     this.manuallyCompleted = true;
-    this.state$.next('DISCONNECTED');
-    this.log('Connection state changed:', 'DISCONNECTED');
+    this.state$.next(RxConnectionState.DISCONNECTED);
+    this.log('Connection state changed:', RxConnectionState.DISCONNECTED);
   }
 
   public complete(): void {
@@ -100,7 +109,7 @@ export class RxWebSocketSubject<In, Out = any> {
   }
 
   public subscribe(observer: NextObserver<In>): Subscription {
-    if (this.state$.value === 'DISCONNECTED') {
+    if (this.state$.value === RxConnectionState.DISCONNECTED) {
       this.connect();
     }
 
@@ -119,7 +128,7 @@ export class RxWebSocketSubject<In, Out = any> {
     unsubMsg: () => Out,
     messageFilter: (msg: In) => boolean,
   ): Observable<In> {
-    if (this.state$.value === 'DISCONNECTED') {
+    if (this.state$.value === RxConnectionState.DISCONNECTED) {
       this.connect();
     }
 
@@ -136,7 +145,7 @@ export class RxWebSocketSubject<In, Out = any> {
     const key = `mux-${this.keyCounter++}`;
     this.multiplexStreams.set(key, entry);
 
-    if (this.state$.value === 'CONNECTED') {
+    if (this.state$.value === RxConnectionState.CONNECTED) {
       try {
         const msg = entry.subMsg();
         this.log('Sending multiplex subscribe message:', msg);
@@ -194,15 +203,15 @@ export class RxWebSocketSubject<In, Out = any> {
 
   private connect(): void {
     if (
-      this.state$.value === 'CONNECTED' ||
-      this.state$.value === 'CONNECTING'
+      this.state$.value === RxConnectionState.CONNECTED ||
+      this.state$.value === RxConnectionState.CONNECTING
     ) {
       return;
     }
 
     this.manuallyCompleted = false;
-    this.state$.next('CONNECTING');
-    this.log('Connection state changed:', 'CONNECTING');
+    this.state$.next(RxConnectionState.CONNECTING);
+    this.log('Connection state changed:', RxConnectionState.CONNECTING);
 
     this.socketSubscription?.unsubscribe();
     this.outputSubscription?.unsubscribe();
@@ -224,16 +233,16 @@ export class RxWebSocketSubject<In, Out = any> {
             this.log('Error getting multiplex subscribe message:', err);
           }
         }
-        this.state$.next('CONNECTED');
-        this.log('Connection state changed:', 'CONNECTED');
+        this.state$.next(RxConnectionState.CONNECTED);
+        this.log('Connection state changed:', RxConnectionState.CONNECTED);
         this.attempts = 0;
       },
     };
 
     const internalCloseObserver: NextObserver<CloseEvent> = {
       next: () => {
-        this.state$.next('DISCONNECTED');
-        this.log('Connection state changed:', 'DISCONNECTED');
+        this.state$.next(RxConnectionState.DISCONNECTED);
+        this.log('Connection state changed:', RxConnectionState.DISCONNECTED);
 
         if (!this.manuallyCompleted) {
           this.log('WebSocket closed unexpectedly, reconnecting...');
@@ -280,12 +289,12 @@ export class RxWebSocketSubject<In, Out = any> {
       }) as (msg: In | Out) => void,
       error: (err) => {
         this.log('WebSocket error:', err);
-        this.state$.next('DISCONNECTED');
+        this.state$.next(RxConnectionState.DISCONNECTED);
         this.reconnect();
       },
       complete: () => {
         this.log('WebSocket complete');
-        this.state$.next('DISCONNECTED');
+        this.state$.next(RxConnectionState.DISCONNECTED);
         if (!this.manuallyCompleted) this.reconnect();
       },
     });
@@ -327,7 +336,7 @@ export class RxWebSocketSubject<In, Out = any> {
 }
 
 export function rxWebSocket<In, Out = any>(
-  urlConfigOrSource: string | RxWebSocketSubjectConfig<In, Out>,
+  urlOrConfig: string | RxWebSocketSubjectConfig<In, Out>,
 ): RxWebSocketSubject<In, Out> {
-  return new RxWebSocketSubject<In, Out>(urlConfigOrSource);
+  return new RxWebSocketSubject<In, Out>(urlOrConfig);
 }
